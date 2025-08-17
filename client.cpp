@@ -3,7 +3,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
-#include "util.h"
+#include "src/util.h"
 
 #define BUFFER_SIZE 1024
 
@@ -24,7 +24,6 @@ int main()
     {
         char buf[BUFFER_SIZE]; // 在这个版本，buf大小必须大于或等于服务器端buf大小，不然会出错，想想为什么？
         bzero(&buf, sizeof(buf));
-        printf("Client input: ");
         scanf("%s", buf);
         ssize_t write_bytes = write(sockfd, buf, sizeof(buf));
         if (write_bytes == -1)

@@ -1,6 +1,7 @@
 #include "Channel.h"
 #include "Epoll.h"
 #include "EventLoop.h"
+#include <unistd.h>
 
 Channel::Channel(EventLoop *_ep, int _fd) : ep(_ep), fd(_fd), events(0), revents(0), inEpoll(false)
 {
@@ -8,6 +9,11 @@ Channel::Channel(EventLoop *_ep, int _fd) : ep(_ep), fd(_fd), events(0), revents
 
 Channel::~Channel()
 {
+    if (fd != -1)
+    {
+        close(fd);
+        fd = -1;
+    }
 }
 
 void Channel::enableReading()

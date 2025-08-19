@@ -7,25 +7,18 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include "Acceptor.h"
 
 #define READ_BUFFER 1024
 
-Server::Server(EventLoop* _loop): loop(_loop)
-{
-    Socket* serv_sock = new Socket();
-    InetAddress* serv_addr = new InetAddress("127.0.0.1", 8888);
-    serv_sock->bind(serv_addr);
-    serv_sock->listen();
-    serv_sock->setnonblocking();
-
-    Channel* serv_chel = new Channel(loop, serv_sock->getFd());
-    std::function<void()> cb = std::bind(&Server::newConnection, this, serv_sock);
-    serv_chel->setCallback(cb);
-    serv_chel->enableReading();
+Server::Server(EventLoop *_loop) : loop(_loop), acceptor(nullptr){ 
+    acceptor = new Acceptor(loop);
+    std::function<void(Socket*)> cb = std::bind(&Server::newConnection, this, std::placeholders::_1);
+    acceptor->setNewConnectionCallback(cb);
 }
 
-Server::~Server()
-{
+Server::~Server(){
+    delete acceptor;
 }
 
 void Server::handleEvent(int sockfd)

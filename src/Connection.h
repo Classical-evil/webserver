@@ -2,6 +2,7 @@
 #include <functional>
 
 class EventLoop;
+class Buffer;
 class Socket;
 class Channel;
 class Connection
@@ -11,6 +12,7 @@ private:
     Socket *sock;
     Channel *channel;
     std::function<void(Socket *)> deleteConnectionCallback;
+    Buffer* readBuffer;
 
 public:
     Connection(EventLoop *_loop, Socket *_sock);

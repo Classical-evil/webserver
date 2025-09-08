@@ -7,5 +7,8 @@ int main()
     Server* server = new Server(loop);
     loop->loop();
 
+    delete server;
+    delete loop;
+
     return 0;
 }

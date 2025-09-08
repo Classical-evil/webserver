@@ -21,6 +21,7 @@ Acceptor::Acceptor(EventLoop *_loop) : loop(_loop), sock(nullptr), acceptChannel
 
 Acceptor::~Acceptor()
 {
+    
     delete sock;
     delete acceptChannel;
 }

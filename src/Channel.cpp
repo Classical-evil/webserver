@@ -58,5 +58,5 @@ void Channel::setCallback(std::function<void()> _cb)
 
 void Channel::handleEvent()
 {
-    callback();
+    ep->addThread(callback);
 }

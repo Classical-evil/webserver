@@ -2,13 +2,30 @@
 #include "Ssocket.h"
 #include "Acceptor.h"
 #include "Connection.h"
+#include "ThreadPool.h"
+#include "EventLoop.h"
 #include <functional>
 
-Server::Server(EventLoop *_loop) : loop(_loop), acceptor(nullptr)
+Server::Server(EventLoop *_loop) : mainReactor(_loop), acceptor(nullptr)
 {
-    acceptor = new Acceptor(loop);
+    acceptor = new Acceptor(mainReactor);
     std::function<void(Socket *)> cb = std::bind(&Server::newConnection, this, std::placeholders::_1);
     acceptor->setNewConnectionCallback(cb);
+
+    int size = std::thread::hardware_concurrency();
+    threadPool = new ThreadPool(size);
+    for(int i = 0; i < size; i++)
+    {
+        subReactors.push_back(new EventLoop());
+    }
+
+    for(int i = 0; i < size; i++)
+    {
+        std::function<void()> sub_loop = std::bind(&EventLoop::loop, subReactors[i]);
+        threadPool->add(sub_loop);
+    }
+
+
 }
 
 Server::~Server()
@@ -20,7 +37,8 @@ void Server::newConnection(Socket *sock)
 {
     if (sock->getFd() != -1)
     {
-        Connection *conn = new Connection(loop, sock);
+        int random = sock->getFd() % subReactors.size();
+        Connection *conn = new Connection(subReactors[random], sock);
         std::function<void(int)> cb = std::bind(&Server::deleteConnection, this, std::placeholders::_1);
         conn->setDeleteConnectionCallback(cb);
         connections[sock->getFd()] = conn;

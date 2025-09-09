@@ -7,7 +7,7 @@
 EventLoop::EventLoop(): ep(nullptr), quit(false)
 {
     ep = new Epoll();
-    threadPool = new ThreadPool();
+    // threadPool = new ThreadPool();
 }
 
 EventLoop::~EventLoop()
@@ -32,7 +32,7 @@ void EventLoop::updateChannel(Channel* channel)
     ep->updateChannel(channel);
 }
 
-void EventLoop::addThread(std::function<void()> func)
-{
-    threadPool->add(func);
-}
+// void EventLoop::addThread(std::function<void()> func)
+// {
+//     threadPool->add(func);
+// }

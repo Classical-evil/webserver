@@ -71,16 +71,10 @@ void Channel::handleEvent()
 {
     if (ready & (EPOLLIN | EPOLLPRI))
     {
-        if (useThreadPool)
-            ep->addThread(readCallback);
-        else
-            readCallback();
+        readCallback();
     }
     if (ready & (EPOLLOUT))
     {
-        if (useThreadPool)
-            ep->addThread(writeCallback);
-        else
-            writeCallback();
+        writeCallback();
     }
 }

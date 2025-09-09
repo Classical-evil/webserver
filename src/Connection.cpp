@@ -35,8 +35,6 @@ void Connection::echo(int sockfd){
         bzero(&buf, sizeof(buf));
         ssize_t bytes_read = read(sockfd, buf, sizeof(buf));
         if(bytes_read > 0){
-            // printf("message from client fd %d: %s\n", sockfd, buf);
-            // write(sockfd, buf, sizeof(buf));
             readBuffer->append(buf, bytes_read);
         } else if(bytes_read == -1 && errno == EINTR){  //客户端正常中断、继续读取
             printf("continue reading");

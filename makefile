@@ -14,9 +14,13 @@ clean:
 	rm -r ./build && rm -r ./test
 
 commit:
-	make clean
 	git add .
 	git commit -m "$(msg)"
 	git push 
 
-.PHONY: clean
+test:
+	g++ src/util.cpp src/Buffer.cpp src/Ssocket.cpp src/InetAddress.cpp src/ThreadPool.cpp \
+	-pthread \
+	test.cpp -o ./test/test
+
+.PHONY: clean test commit

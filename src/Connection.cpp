@@ -12,9 +12,13 @@
 
 Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_sock), channel(nullptr){
     channel = new Channel(loop, sock->getFd());
+    channel->enableRead();
+    channel->useET();
+
     std::function<void()> cb = std::bind(&Connection::echo, this, sock->getFd());
-    channel->setCallback(cb);
-    channel->enableReading();
+    channel->setReadCallback(cb);
+    channel->enableRead();
+    channel->setUseThreadPool(true);
     readBuffer = new Buffer();
 
 }
@@ -22,6 +26,7 @@ Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_soc
 Connection::~Connection(){
     delete channel;
     delete sock;
+    delete readBuffer;
 }
 
 void Connection::echo(int sockfd){
@@ -45,12 +50,31 @@ void Connection::echo(int sockfd){
         } else if(bytes_read == 0){  //EOF，客户端断开连接
             printf("EOF, client fd %d disconnected\n", sockfd);
             // close(sockfd);   //关闭socket会自动将文件描述符从epoll树上移除
-            deleteConnectionCallback(sock);
+            deleteConnectionCallback(sockfd);
             break;
         }
     }
 }
 
-void Connection::setDeleteConnectionCallback(std::function<void(Socket*)> _cb){
+void Connection::setDeleteConnectionCallback(std::function<void(int)> _cb){
     deleteConnectionCallback = _cb;
+}
+
+void Connection::send(int sockfd)
+{
+    char buf[readBuffer->size() + 3];
+    strcpy(buf, readBuffer->c_str());
+    ssize_t dataSize = readBuffer->size();
+    ssize_t dataLeft = dataSize;
+    while(dataLeft > 0)
+    {
+        ssize_t bytesWrite = write(sockfd, buf + dataSize - dataLeft, dataLeft);
+
+        if (bytesWrite == -1 && errno == EAGAIN)
+        {
+            break;
+        }
+
+        dataLeft -= bytesWrite;
+    }
 }

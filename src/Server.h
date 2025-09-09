@@ -20,5 +20,5 @@ public:
 
     void handleEvent(int);
     void newConnection(Socket* serv_sock);
-    void deleteConnection(Socket *sock);
+    void deleteConnection(int sock);
 };

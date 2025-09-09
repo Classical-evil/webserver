@@ -49,7 +49,7 @@ std::vector<Channel *> Epoll::poll(int timeout)
         // printf("ptr\n");
         Channel *ch = (Channel *)events[i].data.ptr;
         // printf("setRevents ch:%p\n", ch);
-        ch->setRevents(events[i].events);
+        ch->setReady(events[i].events);
         // printf("push_back\n");
         activeChannels.push_back(ch);
     }
@@ -73,4 +73,11 @@ void Epoll::updateChannel(Channel *channel)
     {
         errif(epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &ev) == -1, "epoll modify error");
     }
+}
+
+void Epoll::deleteChannel(Channel *channel)
+{
+    int fd = channel->getFd();
+    errif(epoll_ctl(epfd, EPOLL_CTL_DEL, fd, NULL) == -1, "epoll delete error");
+    channel->setInEpoll(false);
 }

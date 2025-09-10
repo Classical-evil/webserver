@@ -18,7 +18,7 @@ private:
     bool stop;
 
 public:
-    ThreadPool(int size = 10);
+    ThreadPool(int size = std::thread::hardware_concurrency());
     ~ThreadPool();
 
     // void add(std::function<void()>);

@@ -2,7 +2,7 @@ server:
 	mkdir ./build
 	mkdir ./test
 	g++ src/util.cpp client.cpp -o ./build/client && \
-	g++ src/util.cpp src/Epoll.cpp src/InetAddress.cpp src/Ssocket.cpp \
+	g++ src/util.cpp src/Epoll.cpp src/Ssocket.cpp \
 	src/Channel.cpp src/EventLoop.cpp src/Server.cpp src/Acceptor.cpp src/Connection.cpp \
 	src/Buffer.cpp src/ThreadPool.cpp server.cpp -o ./build/server
 	echo ./build/server > ./test/server
@@ -19,7 +19,7 @@ commit:
 	git push 
 
 test:
-	g++ src/util.cpp src/Buffer.cpp src/Ssocket.cpp src/InetAddress.cpp src/ThreadPool.cpp \
+	g++ src/util.cpp src/Buffer.cpp src/Ssocket.cpp src/ThreadPool.cpp \
 	-pthread \
 	test.cpp -o ./test/test
 

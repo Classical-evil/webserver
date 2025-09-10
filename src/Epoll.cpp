@@ -21,11 +21,11 @@ Epoll::~Epoll()
 {
     if(epfd != -1) 
     {
-        close(epfd);
+        // close(epfd);
         epfd = -1;
     }
 
-    delete[] events;
+    // delete[] events;
 }
 
 void Epoll::addFd(int fd, uint32_t op)
@@ -46,14 +46,10 @@ std::vector<Channel *> Epoll::poll(int timeout)
     errif(nfds == -1, "epoll wait error");
     for (int i = 0; i < nfds; ++i)
     {
-        // printf("ptr\n");
         Channel *ch = (Channel *)events[i].data.ptr;
-        // printf("setRevents ch:%p\n", ch);
         ch->setReady(events[i].events);
-        // printf("push_back\n");
         activeChannels.push_back(ch);
     }
-    // printf("return\n");
     return activeChannels;
 }
 

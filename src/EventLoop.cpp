@@ -12,7 +12,7 @@ EventLoop::EventLoop(): ep(nullptr), quit(false)
 
 EventLoop::~EventLoop()
 {
-
+    // delete ep;
 }
 
 void EventLoop::loop()
@@ -31,8 +31,3 @@ void EventLoop::updateChannel(Channel* channel)
 {
     ep->updateChannel(channel);
 }
-
-// void EventLoop::addThread(std::function<void()> func)
-// {
-//     threadPool->add(func);
-// }

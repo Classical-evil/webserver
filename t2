@@ -1,2 +1,2 @@
 make test
-./test/test -t 500 -m 10 -w 5
+./test/test -t 500 -m 10 -w 3

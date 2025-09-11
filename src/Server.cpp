@@ -30,8 +30,8 @@ Server::Server(EventLoop *_loop) : mainReactor(_loop), acceptor(nullptr)
 
 Server::~Server()
 {
-    // delete acceptor;
-    // delete threadPool;
+    delete acceptor;
+    delete threadPool;
 }
 
 void Server::newConnection(Socket *sock)
@@ -58,8 +58,7 @@ void Server::deleteConnection(Socket* sock)
         {
             Connection *conn = connections[sockfd];
             connections.erase(sockfd);
-            // close(sockfd);       //正常
-            delete conn; // 会Segmant fault
+            delete conn; 
             conn = nullptr;
         }
     }

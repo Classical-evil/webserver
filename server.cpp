@@ -20,7 +20,8 @@ int main()
     // std::cout << "Message from client " << conn->getSocket()->getFd() << ": " << conn->ReadBuffer() << std::endl;
     printf("Message from client %d: %s\n", conn->getSocket()->getFd(), conn->ReadBuffer());
     conn->setSendBuffer(conn->ReadBuffer());
-    conn->Write(); });
+    conn->Write(); 
+    });
 
     loop->loop();
     delete server;

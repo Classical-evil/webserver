@@ -21,11 +21,16 @@ Epoll::~Epoll()
 {
     if(epfd != -1) 
     {
-        // close(epfd);
+        close(epfd);
         epfd = -1;
     }
 
-    // delete[] events;
+    // if (events != nullptr)delete[] events;
+    // else {
+    //     printf("events not null\n");
+    //     sleep(10);
+    // }
+    delete[] events;
 }
 
 void Epoll::addFd(int fd, uint32_t op)

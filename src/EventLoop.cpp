@@ -12,7 +12,7 @@ EventLoop::EventLoop(): ep(nullptr), quit(false)
 
 EventLoop::~EventLoop()
 {
-    // delete ep;
+    delete ep;
 }
 
 void EventLoop::loop()

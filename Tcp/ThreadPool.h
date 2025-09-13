@@ -1,12 +1,16 @@
-#pragma once
+/******************************
+线程池的实现
+******************************/
 
+#pragma once
+#include <functional>
 #include <vector>
-#include <thread>
 #include <queue>
+#include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <functional>
 #include <future>
+#include "common.h"
 
 class ThreadPool
 {
@@ -15,7 +19,7 @@ private:
     std::queue<std::function<void()>> tasks;
     std::mutex tasks_mtx;
     std::condition_variable cv;
-    bool stop;
+    std::atomic<bool> stop_{false};
 
 public:
     ThreadPool(int size = std::thread::hardware_concurrency());
@@ -23,13 +27,14 @@ public:
 
     // void add(std::function<void()>);
     template <class F, class... Args>
-    auto add(F &&f, Args &&...args)
+    auto Add(F &&f, Args &&...args)
         -> std::future<typename std::result_of<F(Args...)>::type>;
 };
 
-// 不能放在cpp文件，原因是C++编译器不支持模版的分离编译
+// 不能放在cpp文件，C++编译器不支持模版的分离编译
 template <class F, class... Args>
-auto ThreadPool::add(F &&f, Args &&...args) -> std::future<typename std::result_of<F(Args...)>::type>
+auto ThreadPool::Add(F &&f, Args &&...args)
+    -> std::future<typename std::result_of<F(Args...)>::type>
 {
     using return_type = typename std::result_of<F(Args...)>::type;
 
@@ -41,7 +46,7 @@ auto ThreadPool::add(F &&f, Args &&...args) -> std::future<typename std::result_
         std::unique_lock<std::mutex> lock(tasks_mtx);
 
         // don't allow enqueueing after stopping the pool
-        if (stop)
+        if (stop_)
             throw std::runtime_error("enqueue on stopped ThreadPool");
 
         tasks.emplace([task]()

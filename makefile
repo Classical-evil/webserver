@@ -1,26 +1,23 @@
+TCP=$(wildcard Tcp/*.cpp)
+
 server:
 	mkdir ./build
-	mkdir ./test
-	g++ src/util.cpp client.cpp -o ./build/client && \
-	g++ src/util.cpp src/Epoll.cpp src/Ssocket.cpp \
-	src/Channel.cpp src/EventLoop.cpp src/Server.cpp src/Acceptor.cpp src/Connection.cpp \
-	src/Buffer.cpp src/ThreadPool.cpp server.cpp -o ./build/server
-	echo ./build/server > ./test/server
-	echo ./build/client > ./test/client
-	chmod +x ./test/server
-	chmod +x ./test/client
+	g++ -std=c++14 -pthread -g \
+	$(TCP) \
+	echo_server.cpp \
+	-o ./build/server
+
+	g++ -pthread Tcp/Buffer.cpp Tcp/ThreadPool.cpp test.cpp -o ./build/test
+
+
 
 clean:
-	rm -r ./build && rm -r ./test
+	rm -r ./build
+
 
 commit:
 	git add .
 	git commit -m "$(msg)"
 	git push 
 
-test:
-	g++ src/util.cpp src/Buffer.cpp src/Ssocket.cpp src/ThreadPool.cpp \
-	-pthread \
-	test.cpp -o ./test/test
-
-.PHONY: clean test commit
+.PHONY: clean commit

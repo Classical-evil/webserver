@@ -1,22 +1,25 @@
 #include <iostream>
-#include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <string.h>
-#include <functional>
-#include "src/util.h"
-#include "src/Buffer.h"
-#include "src/Ssocket.h"
-#include "src/ThreadPool.h"
+#include <unistd.h>
+#include "Tcp/Buffer.h"
+#include "Tcp/ThreadPool.h"
 
 using namespace std;
 
 void oneClient(int msgs, int wait)
 {
-    Socket *sock = new Socket();
-    InetAddress *addr = new InetAddress("127.0.0.1", 1234);
-    // sock->setnonblocking(); 客户端使用阻塞式连接比较好，方便简单不容易出错
-    sock->connect(addr);
+     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    int sockfd = sock->getFd();
+    struct sockaddr_in serv_addr;
+    bzero(&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serv_addr.sin_port = htons(1234);
+
+    if (connect(sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
+        std::cout << "connect failed" << std::endl; 
 
     Buffer *sendBuffer = new Buffer();
     Buffer *readBuffer = new Buffer();
@@ -25,8 +28,8 @@ void oneClient(int msgs, int wait)
     int count = 0;
     while (count < msgs)
     {
-        sendBuffer->setBuf("I'm client!");
-        ssize_t write_bytes = write(sockfd, sendBuffer->c_str(), sendBuffer->size());
+        sendBuffer->set_buf("I'm client!");
+        ssize_t write_bytes = write(sockfd, sendBuffer->c_str(), sendBuffer->Size());
         if (write_bytes == -1)
         {
             printf("socket already disconnected, can't write any more!\n");
@@ -40,7 +43,7 @@ void oneClient(int msgs, int wait)
             ssize_t read_bytes = read(sockfd, buf, sizeof(buf));
             if (read_bytes > 0)
             {
-                readBuffer->append(buf, read_bytes);
+                readBuffer->Append(buf, read_bytes);
                 already_read += read_bytes;
             }
             else if (read_bytes == 0)
@@ -48,16 +51,17 @@ void oneClient(int msgs, int wait)
                 printf("server disconnected!\n");
                 exit(EXIT_SUCCESS);
             }
-            if (already_read >= sendBuffer->size())
+            if (already_read >= sendBuffer->Size())
             {
                 printf("count: %d, message from server: %s\n", count++, readBuffer->c_str());
                 break;
             }
         }
-        readBuffer->clear();
+        readBuffer->Clear();
     }
-    delete addr;
-    delete sock;
+
+
+    close(sockfd);
 }
 
 int main(int argc, char *argv[])
@@ -91,7 +95,7 @@ int main(int argc, char *argv[])
     std::function<void()> func = std::bind(oneClient, msgs, wait);
     for (int i = 0; i < threads; ++i)
     {
-        poll->add(func);
+        poll->Add(func);
     }
     delete poll;
     return 0;

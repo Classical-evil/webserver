@@ -19,7 +19,7 @@ TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid) : connfd_(
         channel_ = std::make_unique<Channel>(connfd, loop);
         channel_->EnableET();
         channel_->set_read_callback(std::bind(&TcpConnection::HandleMessage, this));
-        channel_->EnableRead();
+        // channel_->EnableRead();
     }
     read_buf_ = std::make_unique<Buffer>();
     send_buf_ = std::make_unique<Buffer>();
@@ -30,11 +30,25 @@ TcpConnection::~TcpConnection()
     ::close(connfd_);
 }
 
-void TcpConnection::set_close_callback(std::function<void(int)> const &fn)
+void TcpConnection::ConnectionEstablished() {
+    state_ = ConnectionState::Connected;
+    channel_->Tie(shared_from_this());
+    channel_->EnableRead();
+    if (on_connect_) {
+        on_connect_(shared_from_this());
+    }
+}
+void TcpConnection::ConnectionDestructor() {
+    loop_->DeleteChannel(channel_.get());
+}
+void TcpConnection::set_connection_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) {
+    on_connect_ = std::move(fn);
+}
+void TcpConnection::set_close_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn)
 {
     on_close_ = std::move(fn);
 }
-void TcpConnection::set_message_callback(std::function<void(TcpConnection *)> const &fn)
+void TcpConnection::set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn)
 {
     on_message_ = std::move(fn);
 }
@@ -42,15 +56,10 @@ void TcpConnection::set_message_callback(std::function<void(TcpConnection *)> co
 void TcpConnection::HandleMessage()
 {
     Read();
-    // if (conn->GetState() == Connection::State::Closed)
-    // {
-    //     conn->Close();
-    //     return;
-    // }
-    // std::cout << "Message from client " << ": " << read_buf_->c_str() << std::endl;
-    printf("Message from client : %s\n", read_buf_->c_str());
-    set_send_buf(read_buf_->c_str());
-    Write();
+    if (on_message_)
+    {
+        on_message_(shared_from_this());
+    }
 }
 
 void TcpConnection::HandleClose()
@@ -61,7 +70,7 @@ void TcpConnection::HandleClose()
         state_ = ConnectionState::Disconected;
         if (on_close_)
         {
-            on_close_(connfd_);
+            on_close_(shared_from_this());
         }
     }
 }

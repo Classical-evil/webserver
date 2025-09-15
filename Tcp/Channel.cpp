@@ -12,14 +12,25 @@ Channel::Channel(int fd, EventLoop *loop) : fd_(fd), loop_(loop),
 
 Channel::~Channel()
 {
-    if (fd_ != -1)
-    {
-        close(fd_);
-        fd_ = -1;
+}
+
+
+void Channel::HandleEvent() const
+{
+    if (tied_) {
+        std::shared_ptr<void> guard = tie_.lock();
+        HandleEventWithGuard();
+    }else {
+        HandleEventWithGuard();
     }
 }
 
-void Channel::HandleEvent() const
+void Channel::Tie(const std::shared_ptr<void> &ptr) {
+    tied_ = true;
+    tie_ = ptr;
+}
+
+void Channel::HandleEventWithGuard() const
 {
     if (ready_events_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {

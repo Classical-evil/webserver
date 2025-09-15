@@ -2,7 +2,7 @@
 #include "TcpConnection.h"
 #include "EventLoop.h"
 #include "Acceptor.h"
-#include "ThreadPool.h"
+#include "EventLoopThreadPool.h"
 #include "CurrentThread.h"
 #include "common.h"
 #include <memory>
@@ -12,18 +12,13 @@
 
 TcpServer::TcpServer(EventLoop *loop, const char *ip, const int port): main_reactor_(loop), next_conn_id_(1)
 {
-    // main_reactor_ = std::make_unique<EventLoop>();
+
     acceptor_ = std::make_unique<Acceptor>(main_reactor_, ip, port);
     std::function<void(int)> cb = std::bind(&TcpServer::HandleNewConnection, this, std::placeholders::_1);
     acceptor_->set_newconnection_callback(cb);
 
-    unsigned int size = std::thread::hardware_concurrency();
-    thread_pool_ = std::make_unique<ThreadPool>(size);
-    for (int i = 0; i < size; i++)
-    {
-        std::unique_ptr<EventLoop> sub_reactor = std::make_unique<EventLoop>();
-        sub_reactors_.push_back(std::move(sub_reactor));
-    }
+    thread_pool_ = std::make_unique<EventLoopThreadPool>(loop);
+    
 }
 
 TcpServer::~TcpServer()
@@ -32,11 +27,7 @@ TcpServer::~TcpServer()
 
 void TcpServer::Start()
 {
-    for (int i= 0; i < sub_reactors_.size(); i++)
-    {
-        std::function<void ()> sub_loop = std::bind(&EventLoop::Loop, sub_reactors_[i].get());
-        thread_pool_->Add(std::move(sub_loop));
-    }
+    thread_pool_->start();
 
     main_reactor_->Loop();
 }
@@ -44,9 +35,9 @@ void TcpServer::Start()
 void TcpServer::HandleNewConnection(int fd)
 {
     assert(fd != -1);
-    // std::cout << "New connection fd: " << fd << std::endl;
-    int index = fd % sub_reactors_.size();
-    std::shared_ptr<TcpConnection> conn = std::make_shared<TcpConnection>(sub_reactors_[index].get(), fd, next_conn_id_);
+    
+    EventLoop* sub_reactor_ = thread_pool_->nextloop();
+    std::shared_ptr<TcpConnection> conn = std::make_shared<TcpConnection>(sub_reactor_, fd, next_conn_id_);
     std::function<void(const std::shared_ptr<TcpConnection> &)> cb = std::bind(&TcpServer::HandleClose, this, std::placeholders::_1);
     conn->set_connection_callback(on_connect_);
 

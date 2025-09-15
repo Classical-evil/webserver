@@ -27,8 +27,10 @@ EventLoop::~EventLoop() {
 
 void EventLoop::Loop() 
 {
+    tid_ = CurrentThread::tid();
     while (true)
     {
+        
         for (Channel *active_ch : poller_->Poll())
         {
             active_ch->HandleEvent();

@@ -7,7 +7,7 @@ server:
 	echo_server.cpp \
 	-o ./build/server
 
-	g++ -pthread Tcp/Buffer.cpp Tcp/ThreadPool.cpp test.cpp -o ./build/test
+	g++ -pthread Tcp/Buffer.cpp test/ThreadPool.cpp test/test.cpp -o ./build/test
 
 
 

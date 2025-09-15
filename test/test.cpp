@@ -3,8 +3,8 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
-#include "Tcp/Buffer.h"
-#include "Tcp/ThreadPool.h"
+#include "../Tcp/Buffer.h"
+#include "ThreadPool.h"
 
 using namespace std;
 

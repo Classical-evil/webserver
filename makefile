@@ -1,7 +1,6 @@
 TCP=$(wildcard Tcp/*.cpp)
 
 server:
-	mkdir ./build
 	g++ -std=c++14 -pthread -g \
 	$(TCP) \
 	Http/*.cpp \
@@ -28,5 +27,8 @@ http_context:
 http_server:
 	g++ Http/*.cpp $(TCP) Timer/*.cpp test/http_server.cpp -o build/http_server
 
+logstream:
+	g++ Log/*.cpp test/test_logstream.cpp -o build/logstream
 
-.PHONY: clean commit http_context http_server
+
+.PHONY: clean commit http_context http_server logstream

@@ -5,6 +5,7 @@ server:
 	$(TCP) \
 	Http/*.cpp \
 	Timer/*.cpp \
+	Log/*.cpp \
 	test/echo_server.cpp \
 	-o ./build/server
 
@@ -25,7 +26,7 @@ http_context:
 	g++ Http/*.cpp test/http_context.cpp -o build/http_context
 
 http_server:
-	g++ Http/*.cpp $(TCP) Timer/*.cpp test/http_server.cpp -o build/http_server
+	g++ Http/*.cpp $(TCP) Timer/*.cpp Log/*.cpp test/http_server.cpp -o build/http_server
 
 logstream:
 	g++ Log/*.cpp test/test_logstream.cpp -o build/logstream

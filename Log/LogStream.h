@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "../Tcp/common.h"
 #include <string>
 #include <algorithm>

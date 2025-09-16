@@ -9,6 +9,7 @@
 
 class Buffer;
 class HttpContext;
+class TimeStamp;
 
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {
@@ -61,7 +62,10 @@ public:
 
         HttpContext *context() const;
 
-        private :
+        TimeStamp timestamp() const;
+        void UpdateTimeStamp(TimeStamp now);
+
+    private:
         // 该连接绑定的Socket
         int connfd_;
         // 为该连接分配一个id方便后续的debug
@@ -84,4 +88,7 @@ public:
         void WriteNonBlocking();
 
         std::unique_ptr<HttpContext> context_;
+
+        // 需要频繁赋值，使用普通成员变量。
+        TimeStamp timestamp_;
     };

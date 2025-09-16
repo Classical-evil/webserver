@@ -8,6 +8,8 @@
 #include "../Tcp/Buffer.h"
 #include "../Tcp/EventLoop.h"
 #include "../Tcp/CurrentThread.h"
+#include "../Log/LogStream.h"
+#include "../Log/Logging.h"
 #include <arpa/inet.h>
 #include <functional>
 #include <iostream>
@@ -31,7 +33,8 @@ HttpServer::HttpServer(EventLoop* loop, const char* ip, const int port): loop_(l
         std::bind(&HttpServer::HttpDefaultCallBack, this, std::placeholders::_1, std::placeholders::_2)
     );
 
-    loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
+    // loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
+    LOG_WARN << "HttpServer Listening on [ " << ip << ":" << port << " ]";
 }
 
 void HttpServer::onConnection(const TcpConnectionPtr &conn)

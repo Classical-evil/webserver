@@ -4,7 +4,8 @@ server:
 	mkdir ./build
 	g++ -std=c++14 -pthread -g \
 	$(TCP) \
-	Http/*cpp \
+	Http/*.cpp \
+	Timer/*.cpp \
 	test/echo_server.cpp \
 	-o ./build/server
 
@@ -25,7 +26,7 @@ http_context:
 	g++ Http/*.cpp test/http_context.cpp -o build/http_context
 
 http_server:
-	g++ Http/*.cpp $(TCP) test/http_server.cpp -o build/http_server
+	g++ Http/*.cpp $(TCP) Timer/*.cpp test/http_server.cpp -o build/http_server
 
 
 .PHONY: clean commit http_context http_server

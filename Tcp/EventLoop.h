@@ -8,6 +8,9 @@
 #include <functional>
 #include <vector>
 #include <thread>
+
+class TimeStamp;
+class TimerQueue;
 class Epoller;
 class EventLoop
 {
@@ -30,6 +33,11 @@ public:
 
     void HandleRead();
 
+    // 定时器功能，
+    void RunAt(TimeStamp timestamp, std::function<void()> const &cb);
+    void RunAfter(double wait_time, std::function<void()> const &cb);
+    void RunEvery(double interval, std::function<void()> const &cb);
+
 private:
     std::unique_ptr<Epoller> poller_;
 
@@ -41,4 +49,6 @@ private:
 
     bool calling_functors_;
     pid_t tid_;
+
+    std::unique_ptr<TimerQueue> timer_queue_;
 };

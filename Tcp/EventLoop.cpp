@@ -11,6 +11,9 @@
 #include <sys/eventfd.h>
 #include <assert.h>
 
+#include "../Timer/TimeStamp.h"
+#include "../Timer/TimerQueue.h"
+
 EventLoop::EventLoop() { 
     poller_ = std::make_unique<Epoller>();
     wakeup_fd_ = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
@@ -18,6 +21,8 @@ EventLoop::EventLoop() {
     calling_functors_ = false;
     wakeup_channel_->set_read_callback(std::bind(&EventLoop::HandleRead, this));
     wakeup_channel_->EnableRead();
+
+    timer_queue_ = std::make_unique<TimerQueue>(this);
  }
 
 EventLoop::~EventLoop() {
@@ -84,4 +89,21 @@ void EventLoop::HandleRead() {
     (void)read_size;
     assert(read_size == sizeof(read_one_byte));
     return;
+}
+
+void EventLoop::RunAt(TimeStamp timestamp, std::function<void()> const &cb)
+{
+    timer_queue_->AddTimer(timestamp, std::move(cb), 0.0);
+}
+
+void EventLoop::RunAfter(double wait_time, std::function<void()> const &cb)
+{
+    TimeStamp timestamp(TimeStamp::AddTime(TimeStamp::Now(), wait_time));
+    timer_queue_->AddTimer(timestamp, std::move(cb), 0.0);
+}
+
+void EventLoop::RunEvery(double interval, std::function<void()> const &cb)
+{
+    TimeStamp timestamp(TimeStamp::AddTime(TimeStamp::Now(), interval));
+    timer_queue_->AddTimer(timestamp, std::move(cb), interval);
 }

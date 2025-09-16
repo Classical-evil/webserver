@@ -30,6 +30,8 @@ HttpServer::HttpServer(EventLoop* loop, const char* ip, const int port): loop_(l
     SetHttpCallback(
         std::bind(&HttpServer::HttpDefaultCallBack, this, std::placeholders::_1, std::placeholders::_2)
     );
+
+    loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
 }
 
 void HttpServer::onConnection(const TcpConnectionPtr &conn)

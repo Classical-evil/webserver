@@ -1,39 +1,45 @@
-#include "Tcp/Acceptor.h"
-#include "Tcp/EventLoop.h"
-#include "Tcp/TcpServer.h"
-#include "Tcp/Buffer.h"
-#include "Tcp/EventLoopThreadPool.h"
-#include "Tcp/TcpConnection.h"
-#include "Tcp/CurrentThread.h"
+#include "../Tcp/Acceptor.h"
+#include "../Tcp/EventLoop.h"
+#include "../Tcp/TcpServer.h"
+#include "../Tcp/Buffer.h"
+#include "../Tcp/EventLoopThreadPool.h"
+#include "../Tcp/TcpConnection.h"
+#include "../Tcp/CurrentThread.h"
 #include <iostream>
 #include <functional>
 #include <arpa/inet.h>
 #include <vector>
 
-class EchoServer{
-    public:
-        EchoServer(EventLoop *loop, const char *ip, const int port);
-        ~EchoServer();
+class EchoServer
+{
+public:
+    EchoServer(EventLoop *loop, const char *ip, const int port);
+    ~EchoServer();
 
-        void start();
-        void onConnection(const std::shared_ptr<TcpConnection> & conn);
-        void onMessage(const std::shared_ptr<TcpConnection> & conn);
+    void start();
+    void onConnection(const std::shared_ptr<TcpConnection> &conn);
+    void onMessage(const std::shared_ptr<TcpConnection> &conn);
 
-    private:
-        TcpServer server_;
+    void SetThreadNums(int thread_nums);
+
+private:
+    TcpServer server_;
 };
 
-EchoServer::EchoServer(EventLoop *loop, const char *ip, const int port) :  server_(loop, ip, port){
+EchoServer::EchoServer(EventLoop *loop, const char *ip, const int port) : server_(loop, ip, port)
+{
     server_.set_connection_callback(std::bind(&EchoServer::onConnection, this, std::placeholders::_1));
     server_.set_message_callback(std::bind(&EchoServer::onMessage, this, std::placeholders::_1));
 };
-EchoServer::~EchoServer(){};
+EchoServer::~EchoServer() {};
 
-void EchoServer::start(){
+void EchoServer::start()
+{
     server_.Start();
 }
 
-void EchoServer::onConnection(const std::shared_ptr<TcpConnection> & conn){
+void EchoServer::onConnection(const std::shared_ptr<TcpConnection> &conn)
+{
     // 获取接收连接的Ip地址和port端口
     int clnt_fd = conn->fd();
     struct sockaddr_in peeraddr;
@@ -47,7 +53,8 @@ void EchoServer::onConnection(const std::shared_ptr<TcpConnection> & conn){
               << std::endl;
 };
 
-void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
+void EchoServer::onMessage(const std::shared_ptr<TcpConnection> &conn)
+{
     // std::cout << CurrentThread::tid() << " EchoServer::onMessage" << std::endl;
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
@@ -57,21 +64,30 @@ void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
     }
 }
 
-int main(int argc, char *argv[]){
+void EchoServer::SetThreadNums(int thread_nums) { server_.SetThreadNums(thread_nums); }
+
+int main(int argc, char *argv[])
+{
     int port;
     if (argc <= 1)
     {
         port = 1234;
-    }else if (argc == 2){
+    }
+    else if (argc == 2)
+    {
         port = atoi(argv[1]);
-    }else{
+    }
+    else
+    {
         printf("error");
         exit(0);
     }
+    int size = std::thread::hardware_concurrency();
     EventLoop *loop = new EventLoop();
     EchoServer *server = new EchoServer(loop, "127.0.0.1", port);
+    server->SetThreadNums(size);
     server->start();
-    
+
     // delete loop;
     // delete server;
     return 0;

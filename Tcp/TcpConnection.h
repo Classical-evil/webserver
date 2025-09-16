@@ -1,10 +1,15 @@
 #pragma once
+
 #include "common.h"
+#include "../Http/HttpContext.h"
 
 #include <functional>
 #include <memory>
 #include <string>
+
 class Buffer;
+class HttpContext;
+
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {
 public:
@@ -54,7 +59,9 @@ public:
         int fd() const;
         int id() const;
 
-    private:
+        HttpContext *context() const;
+
+        private :
         // 该连接绑定的Socket
         int connfd_;
         // 为该连接分配一个id方便后续的debug
@@ -75,4 +82,6 @@ public:
 
         void ReadNonBlocking();
         void WriteNonBlocking();
+
+        std::unique_ptr<HttpContext> context_;
     };

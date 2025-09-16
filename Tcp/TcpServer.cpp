@@ -73,3 +73,5 @@ inline void TcpServer::HandleCloseInLoop(const std::shared_ptr<TcpConnection> &c
 
 void TcpServer::set_connection_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { on_connect_ = std::move(fn); };
 void TcpServer::set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { on_message_ = std::move(fn); };
+
+void TcpServer::SetThreadNums(int thread_nums) { thread_pool_->SetThreadNums(thread_nums); }

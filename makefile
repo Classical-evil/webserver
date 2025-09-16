@@ -20,4 +20,7 @@ commit:
 	git commit -m "$(msg)"
 	git push 
 
-.PHONY: clean commit
+context:
+	g++ Http/*.cpp test/text_httpcontext.cpp -o build/context
+
+.PHONY: clean commit context

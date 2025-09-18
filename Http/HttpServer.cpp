@@ -89,6 +89,8 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
 
     conn->Send(response.message());
 
+    // conn->read_buf_->RetrieveAll();
+    // conn->send_buf_->RetrieveAll();
     if(response.IsCloseConnection()){
         conn->HandleClose();
     }

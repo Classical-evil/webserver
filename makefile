@@ -25,8 +25,8 @@ commit:
 http_context:
 	g++ Http/*.cpp test/http_context.cpp -o build/http_context
 
-http_server:
-	g++ Http/*.cpp $(TCP) Timer/*.cpp Log/*.cpp test/http_server.cpp -o build/http_server
+webserver:
+	g++ Http/*.cpp $(TCP) Timer/*.cpp Log/*.cpp test/http_server.cpp -o build/webserver
 
 logstream:
 	g++ Log/*.cpp test/test_logstream.cpp -o build/logstream

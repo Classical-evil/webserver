@@ -73,7 +73,12 @@ void TcpConnection::HandleClose() {
 
 void TcpConnection::HandleMessage(){
     LOG_INFO << "TcoConnectino::HandleMessage";
+    LOG_INFO << "Before";
+    LOG_INFO << std::string(read_buf_->Peek(), read_buf_->readablebytes()).c_str();
+
     Read();
+    LOG_INFO << std::string(read_buf_->Peek(), read_buf_->readablebytes()).c_str();
+    LOG_INFO << "After";
     if (on_message_)
     {
         on_message_(shared_from_this());
@@ -137,6 +142,8 @@ void TcpConnection::Send(const char *msg, int len){
         // 2. 监听了写事件，并且已经触发了，此时再次监听，强制触发一次，如果强制触发失败，仍然可以等待后续TCP缓冲区可写。
         channel_->EnableWrite();
     }
+    send_buf_->RetrieveAll();
+    read_buf_->RetrieveAll();
 }
 
 void TcpConnection::Read()

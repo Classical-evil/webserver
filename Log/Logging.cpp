@@ -125,6 +125,7 @@ Logger::~Logger()
         g_flush();
         abort();
     }
+    
 }
 
 

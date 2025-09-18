@@ -57,8 +57,11 @@ class HttpContext
 public:
     HttpContext();
     ~HttpContext();
+    
+    bool ParaseRequest(const char *begin, int size);
+    bool ParaseRequest(const std::string& msg);
+    bool ParaseRequest(const char *begin);
 
-    bool ParaseRequest(const char* begin, int size);
     bool GetCompleteRequest();
     HttpRequest* request();
     void ResetContextStatus();

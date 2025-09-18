@@ -14,7 +14,7 @@ server:
 
 
 clean:
-	rm -r ./build
+	rm -r ./build && rm -r LogFiles
 
 
 commit:

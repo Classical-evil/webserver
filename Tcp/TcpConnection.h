@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "../Http/HttpContext.h"
+#include "../Timer/TimeStamp.h"
 
 #include <functional>
 #include <memory>
@@ -9,7 +10,6 @@
 
 class Buffer;
 class HttpContext;
-class TimeStamp;
 
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {
@@ -51,6 +51,7 @@ public:
         void Send(const char *msg);
 
         void HandleMessage(); // 当接收到信息时，进行回调
+        void HandleWrite();
 
         // 当TcpConnection发起关闭请求时，进行回调，释放相应的socket.
         void HandleClose();

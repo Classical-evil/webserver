@@ -40,10 +40,9 @@ void TcpServer::HandleNewConnection(int fd)
     std::shared_ptr<TcpConnection> conn = std::make_shared<TcpConnection>(sub_reactor_, fd, next_conn_id_);
     std::function<void(const std::shared_ptr<TcpConnection> &)> cb = std::bind(&TcpServer::HandleClose, this, std::placeholders::_1);
     conn->set_connection_callback(on_connect_);
-
+    conn->set_message_callback(on_message_);
     // 将connection分配给Channel的tie,增加计数
     conn->set_close_callback(cb);
-    conn->set_message_callback(on_message_);
     connectionsMap_[fd] = conn;
     // 分配id
     ++next_conn_id_;

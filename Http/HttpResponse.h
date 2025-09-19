@@ -11,11 +11,17 @@ public:
         kUnknown = 1,
         k100Continue = 100,
         k200K = 200,
+        k301K = 301,
+        k302K = 302,
         k400BadRequest = 400,
         k403Forbidden = 403,
         k404NotFound = 404,
         k500InternalServerError = 500,
 
+    };
+    enum HttpBodyType {
+        HTML_TYPE,
+        FILE_TYPE,
     };
 
     HttpResponse(bool close_connection);
@@ -26,13 +32,22 @@ public:
     void SetCloseConnection(bool close_connection);
 
     void SetContentType(const std::string &content_type);
+    void SetContentLength(const int &len);
+    int  GetContentLength();
+    
     void AddHeader(const std::string &key, const std::string &value); // 设置回应头
 
     void SetBody(const std::string &body);
 
     std::string message(); // 将信息加入到buffer中。
+    std::string beforebody();
 
     bool IsCloseConnection();
+
+    int filefd () const;
+    HttpBodyType bodytype() const;
+    void SetFileFd(int fd);
+    void SetBodyType(HttpBodyType type);
 
 private:
     std::map<std::string, std::string> headers_;
@@ -40,5 +55,9 @@ private:
     HttpStatusCode status_code_;
     std::string status_message_;
     std::string body_;
-    bool close_connection_;
+     bool close_connection_;
+
+    int content_length_;
+    int filefd_;
+    HttpBodyType body_type_;
 };

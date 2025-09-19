@@ -17,6 +17,7 @@
 
 TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid): connfd_(connfd), connid_(connid), loop_(loop){
 
+
     if (loop != nullptr)
     {
         channel_ = std::make_unique<Channel>(connfd, loop);
@@ -73,13 +74,7 @@ void TcpConnection::HandleClose() {
 }
 
 void TcpConnection::HandleMessage(){
-    LOG_INFO << "TcoConnectino::HandleMessage";
-    LOG_INFO << "Before";
-    LOG_INFO << std::string(read_buf_->Peek(), read_buf_->readablebytes()).c_str();
-
     Read();
-    LOG_INFO << std::string(read_buf_->Peek(), read_buf_->readablebytes()).c_str();
-    LOG_INFO << "After";
     if (on_message_)
     {
         on_message_(shared_from_this());
@@ -110,7 +105,6 @@ void TcpConnection::Send(const char *msg){
 
 
 void TcpConnection::Send(const char *msg, int len){
-    LOG_INFO << "TcpConnection::Send";
 
     int remaining = len;
     int send_size = 0;
@@ -181,8 +175,6 @@ void TcpConnection::ReadNonBlocking(){
 }
 
 void TcpConnection::WriteNonBlocking(){
-    LOG_INFO << "TcpConnection::WriteNonBlocking";
-
     int remaining = send_buf_->readablebytes();
     int send_size = static_cast<int>(write(connfd_, send_buf_->Peek(), remaining));
     if((send_size == -1) && 
@@ -226,3 +218,5 @@ void TcpConnection::SendFile(int filefd, int size){
         send_size += bytes_write;
     }
 }
+
+

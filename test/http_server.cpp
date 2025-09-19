@@ -110,52 +110,35 @@ void DownloadFile(const std::string &filename, HttpResponse *response){
 
 void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
 {
-    if(request.method() != HttpRequest::Method::kGet){
-        response->SetStatusCode(HttpResponse::HttpStatusCode::k400BadRequest);
-        response->SetStatusMessage("Bad Request");
-        response->SetCloseConnection(true);
-    }
-
-    {
-        std::string url = request.url();
+    // LOG_INFO << request.GetMethodString() << " " << request.url();
+    std::string url = request.url();
+    if(request.method() == HttpRequest::Method::kGet){
+        
         if(url == "/"){
-            LOG_INFO << "Main" ;
             std::string body = ReadFile("../static/index.html");
-
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
-            response->SetBody(body);
             response->SetContentLength(body.size());
-
+            response->SetBody(body);
             response->SetContentType("text/html");
         }else if(url == "/mhw"){
-            LOG_INFO << "mhw";
             std::string body = ReadFile("../static/mhw.html");
-
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
-            response->SetBody(body);
             response->SetContentLength(body.size());
-
+            response->SetBody(body);
             response->SetContentType("text/html");
         }else if(url == "/cat.jpg"){
-            LOG_INFO << "cat";
             std::string body = ReadFile("../static/cat.jpg");
-
+            response->SetContentLength(body.size());
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
             response->SetBody(body);
-            response->SetContentLength(body.size());
-
             response->SetContentType("image/jpeg");
-
-        }else if(url == "/fileserver") {
+        }else if(url == "/fileserver"){
             std::string body = BuildFileHtml();
             response->SetContentLength(body.size());
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
             response->SetBody(body);
-            response->SetContentLength(body.size());
-
             response->SetContentType("text/html");
-        }
-        else if(url.substr(0, 7) == "/delete") {
+        }else if(url.substr(0, 7) == "/delete") {
             // 删除特定文件，由于使用get请求，并且会将相应删掉文件的名称放在url中
             RemoveFile(url.substr(8));
             // 发送重定向报文，删除后返回自身应在的位置
@@ -163,20 +146,64 @@ void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
             response->SetStatusMessage("Moved Temporarily");
             response->SetContentType("text/html");
             response->AddHeader("Location", "/fileserver");
+
         }else if(url.substr(0, 9) == "/download"){
             DownloadFile(url.substr(10), response);
             //response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
-        }
-        else{
+        }else if(url == "/favicon.ico"){
+            std::string body = ReadFile("../static/cat.jpg");
+            response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
+            response->SetBody(body);
+            response->SetContentType("image/jpeg");
+        }else
+        {
             response->SetStatusCode(HttpResponse::HttpStatusCode::k404NotFound);
             response->SetStatusMessage("Not Found");
             response->SetBody("Sorry Not Found\n");
             response->SetCloseConnection(true);
         }
     }
-    return;
+    else if( request.method() == HttpRequest::Method::kPost){
+        if(url == "/login"){
+            // 进入登陆界面
+            std::string rqbody = request.body();
 
+            // 解析
+            int usernamePos = rqbody.find("username=");
+            int passwordPos = rqbody.find("password=");
+
+            usernamePos += 9; // "username="的长度
+            passwordPos += 9; // 
+
+            // 找到中间分割符
+            size_t usernameEndPos = rqbody.find('&', usernamePos);
+            size_t passwordEndPos = rqbody.length();
+
+            // Extract the username and password substrings
+            std::string username = rqbody.substr(usernamePos, usernameEndPos - usernamePos);
+            std::string password = rqbody.substr(passwordPos, passwordEndPos - passwordPos);
+
+            if (username == "wlgls"){
+                response->SetBody("login ok!\n");
+            }
+            else{
+                response->SetBody("error!\n");
+            }
+            response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
+            response->SetStatusMessage("OK");
+            response->SetContentType("text/plain");
+        }else if(url == "/upload")
+        {
+            response->SetStatusCode(HttpResponse::HttpStatusCode::k302K);
+            response->SetStatusMessage("Moved Temporarily");
+            response->SetContentType("text/html");
+            response->AddHeader("Location", "/fileserver");
+        }
+    }
+    //LOG_INFO << response->message();
+    return;
 }
+
 
 std::unique_ptr<AsyncLogging> asynclog;
 void AsyncOutputFunc(const char *data, int len)
@@ -208,12 +235,12 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-//    asynclog = std::make_unique<AsyncLogging>();
-//    Logger::setOutput(AsyncOutputFunc);
-//    Logger::setFlush(AsyncFlushFunc);
+   asynclog = std::make_unique<AsyncLogging>();
+   Logger::setOutput(AsyncOutputFunc);
+   Logger::setFlush(AsyncFlushFunc);
 
 
-    // asynclog->Start();
+    asynclog->Start();
   
 
 

@@ -14,6 +14,7 @@
 #include <functional>
 #include <iostream>
 #include <unistd.h>
+#include <fstream>
 
 void HttpServer::HttpDefaultCallBack(const HttpRequest& request, HttpResponse *resp){
     resp->SetStatusCode(HttpResponse::HttpStatusCode::k404NotFound);
@@ -89,13 +90,43 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
     HttpResponse response(close);
     response_callback_(request, &response);
 
-    LOG_INFO << "SENE!!!!!!!!!!!!!!!!!!";
+    if (request.GetHeader("Content-Type").find("multipart/form-data") != std::string::npos){
+        // 对文件进行处理
+        //
+        // 先找到文件名，一般第一个filename位置应该就是文件名的所在地。
+        // 从content-type中找到边界
+        size_t boundary_index = request.GetHeader("Content-Type").find("boundary");
+        std::string boundary = request.GetHeader("Content-Type").substr(boundary_index + std::string("boundary=").size());
+
+        std::string filemessage = request.body();
+        size_t begin_index = filemessage.find("filename");
+        if(begin_index == std::string::npos ){
+            LOG_ERROR << "cant find filename";
+            return;
+        }
+        begin_index += std::string("filename=\"").size();
+        size_t end_index = filemessage.find("\"\r\n", begin_index); // 能用
+
+        std::string filename = filemessage.substr(begin_index, end_index - begin_index);
+
+        // 对文件信息的处理
+        begin_index = filemessage.find("\r\n\r\n") + 4; //遇到空行，说明进入了文件体
+        end_index = filemessage.find(std::string("--") + boundary + "--"); // 对文件内容边界的搜寻
+
+        std::string filedata = filemessage.substr(begin_index, end_index - begin_index);
+        // 写入文件
+        std::ofstream ofs("../files/" + filename, std::ios::out | std::ios::app | std::ios::binary);
+        ofs.write(filedata.data(), filedata.size());
+        ofs.close();
+    }
+
+    // LOG_INFO << "SENE!!!!!!!!!!!!!!!!!!";
     // 如果是HTML，直接发送所有信息
     if(response.bodytype() == HttpResponse::HttpBodyType::HTML_TYPE){
-        LOG_INFO << "HTML_TYPE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-        LOG_INFO << "HTML_TYPE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-        LOG_INFO << "HTML_TYPE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-        LOG_INFO << response.message().c_str();
+        // LOG_INFO << "HTML_TYPE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+        // LOG_INFO << "HTML_TYPE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+        // LOG_INFO << "HTML_TYPE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+        // LOG_INFO << response.message().c_str();
         conn->Send(response.message());
     }else{
         // 考虑到头部字段数据量不多，直接发送完头部字段后，直接发送文件。

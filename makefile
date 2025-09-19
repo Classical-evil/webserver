@@ -26,6 +26,8 @@ http_context:
 	g++ Http/*.cpp test/http_context.cpp -o build/http_context
 
 webserver:
+	mkdir build
+	mkdir LogFiles
 	g++ Http/*.cpp $(TCP) Timer/*.cpp Log/*.cpp test/http_server.cpp -o build/webserver
 
 logstream:
